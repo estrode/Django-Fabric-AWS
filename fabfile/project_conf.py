@@ -7,6 +7,7 @@ servers
 
 author : Ashok Fernandez (github.com/ashokfernandez/)
 credit : Derived from files in https://github.com/gcollazo/Fabulous
+changes: Eric Strode
 date   : 11 / 3 / 2014
 
 Make sure you fill everything out that looks like it needs to be filled out, there are links 
@@ -54,17 +55,17 @@ fabconf['ADMIN_EMAIL'] = "admin@example.com"
 fabconf['GIT_USERNAME'] = "EC2"
 
 # Name of the private key file used for github deployments
-fabconf['BITBUCKET_DEPLOY_KEY_NAME'] = "bitbucket_rsa"
+fabconf['GITHUB_DEPLOY_KEY_NAME'] = "id_rsa"
 
 # Don't edit. Local path for deployment key you use for github
-fabconf['BITBUCKET_DEPLOY_KEY_PATH'] = "%s/%s" % (fabconf['SSH_PATH'], fabconf['BITBUCKET_DEPLOY_KEY_NAME'])
+fabconf['GITHUB_DEPLOY_KEY_PATH'] = "%s/%s" % (fabconf['SSH_PATH'], fabconf['GITHUB_DEPLOY_KEY_NAME'])
 
 # Path to the repo of the application you want to install
-fabconf['BITBUCKET_USERNAME'] = ''
-fabconf['BITBUCKET_REPO_NAME'] = ''
+fabconf['GITHUB_USERNAME'] = ''
+fabconf['GITHUB_REPO_NAME'] = ''
 
-# Creates the ssh location of your bitbucket repo from the above details
-fabconf['BITBUCKET_REPO'] = "ssh://git@bitbucket.org/%s/%s.git" % (fabconf['BITBUCKET_USERNAME'], fabconf['BITBUCKET_REPO_NAME'])
+# Creates the ssh location of your github repo from the above details
+fabconf['GITHUB_REPO'] = "git@github.com:%s/%s.git" % (fabconf['GITHUB_USERNAME'], fabconf['GITHUB_REPO_NAME'])
 
 # Virtualenv activate command
 fabconf['ACTIVATE'] = "source /home/%s/.virtualenvs/%s/bin/activate" % (fabconf['SERVER_USERNAME'], fabconf['PROJECT_NAME'])

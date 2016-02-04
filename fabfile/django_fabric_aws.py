@@ -94,10 +94,10 @@ def instance():
 
 def deploy():
     """
-    Pulls the latest commit from bitbucket, resyncs the database, collects the static files and restarts the
+    Pulls the latest commit from github, migrates the database, collects the static files and restarts the
     server.
     """
-    _run_task(tasks.deploy, "Updating server to latest commit in the bitbucket repo...", "Finished updating the server")
+    _run_task(tasks.deploy, "Updating server to latest commit in the github repo...", "Finished updating the server")
 
 def update_packages():
     """

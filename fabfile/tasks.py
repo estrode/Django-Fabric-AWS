@@ -6,7 +6,8 @@ A set of tasks to manage your AWS Django deployment.
 
 author : Ashok Fernandez (github.com/ashokfernandez/)
 credit : Derived from files in https://github.com/gcollazo/Fabulous
-date   : 11 / 3 / 2014
+changes: Eric Strode
+date   : 2 / 4 / 2016
 
 Tasks include:
     - configure_instance  : Configures a new EC2 instance (as definied in project_conf.py) and return's it's public dns
@@ -15,7 +16,7 @@ Tasks include:
     - update_packages : Updates the python packages on the server to match those found in requirements/common.txt and 
                         requirements/prod.txt
  
-    - deploy : Pulls the latest commit from the master branch on the server, collects the static files, syncs the db and                   
+    - deploy : Pulls the latest commit from the master branch on the server, collects the static files, migrates the db and                   
                restarts the server
  
     - reload_gunicorn : Pushes the gunicorn startup script to the servers and restarts the gunicorn process, use this if you 
@@ -74,10 +75,10 @@ configure_instance = [
   {"action":"run", "params":"git config --global user.name '%(GIT_USERNAME)s'",
     "message":"Configuring git"},
   {"action":"run", "params":"git config --global user.email '%(ADMIN_EMAIL)s'"},
-  {"action":"put", "params":{"file":"%(BITBUCKET_DEPLOY_KEY_PATH)s",
-                            "destination":"/home/%(SERVER_USERNAME)s/.ssh/%(BITBUCKET_DEPLOY_KEY_NAME)s"}},
-  {"action":"run", "params":"chmod 600 /home/%(SERVER_USERNAME)s/.ssh/%(BITBUCKET_DEPLOY_KEY_NAME)s"},
-  {"action":"run", "params":"""echo 'IdentityFile /home/%(SERVER_USERNAME)s/.ssh/%(BITBUCKET_DEPLOY_KEY_NAME)s' >> /home/%(SERVER_USERNAME)s/.ssh/config"""},
+  {"action":"put", "params":{"file":"%(GITHUB_DEPLOY_KEY_PATH)s",
+                            "destination":"/home/%(SERVER_USERNAME)s/.ssh/%(GITHUB_DEPLOY_KEY_NAME)s"}},
+  {"action":"run", "params":"chmod 600 /home/%(SERVER_USERNAME)s/.ssh/%(GITHUB_DEPLOY_KEY_NAME)s"},
+  {"action":"run", "params":"""echo 'IdentityFile /home/%(SERVER_USERNAME)s/.ssh/%(GITHUB_DEPLOY_KEY_NAME)s' >> /home/%(SERVER_USERNAME)s/.ssh/config"""},
   {"action":"run", "params":"ssh-keyscan bitbucket.org >> /home/%(SERVER_USERNAME)s/.ssh/known_hosts"},
   
   # Create virtualevn
@@ -97,7 +98,7 @@ configure_instance = [
     "message":"Installing gunicorn"},
   
   # Clone the git repo
-  {"action":"run", "params":"git clone %(BITBUCKET_REPO)s %(PROJECT_PATH)s"},
+  {"action":"run", "params":"git clone %(GITHUB_REPO)s %(PROJECT_PATH)s"},
   
   {"action":"put", "params":{"file":"%(FAB_CONFIG_PATH)s/templates/gunicorn.conf.py",
                             "destination":"%(PROJECT_PATH)s/gunicorn.conf.py"}},
@@ -129,9 +130,9 @@ configure_instance = [
   {"action":"sudo", "params":"chown root:root /etc/nginx/sites-available/%(PROJECT_NAME)s"},
   {"action":"sudo", "params":"/etc/init.d/nginx restart", "message":"Restarting nginx"},
 
-  # Run collectstatic and syncdb
+  # Run collectstatic and migrate
   {"action":"virtualenv", "params":"python %(PROJECT_PATH)s/manage.py collectstatic -v 0 --noinput"},
-  {"action":"virtualenv", "params":"python %(PROJECT_PATH)s/manage.py syncdb"},
+  {"action":"virtualenv", "params":"python %(PROJECT_PATH)s/manage.py migrate"},
 
 
   # Setup supervisor
@@ -159,16 +160,16 @@ update_packages = [
   {"action":"virtualenv", "params":"pip install -r %(PROJECT_PATH)s/requirements/prod.txt --upgrade"},
 ]
 
-# Pulls the latest commit from the master branch on the server, collects the static files, syncs 
+# Pulls the latest commit from the master branch on the server, collects the static files, migrates 
 # the db and restarts the server
 deploy = [
 
-  # Pull the latest version from the bitbucket repo
+  # Pull the latest version from the github repo
   {"action":"run", "params":"cd %(PROJECT_PATH)s && git pull"},
 
   # Update the database
   {"action":"virtualenv", "params":"python %(PROJECT_PATH)s/manage.py collectstatic -v 0 --noinput"},
-  {"action":"virtualenv", "params":"python %(PROJECT_PATH)s/manage.py syncdb"},
+  {"action":"virtualenv", "params":"python %(PROJECT_PATH)s/manage.py migrate"},
 
   # Restart gunicorn to update the site
   {"action":"sudo", "params": "supervisorctl restart %(PROJECT_NAME)s"}
